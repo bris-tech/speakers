@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <script src="//ajax.aspnetcdn.com/ajax/jQuery/jquery-2.0.3.js"></script>
+    <script src="//ajax.aspnetcdn.com/ajax/knockout/knockout-2.2.1.js"></script>
+    <script src="https://api.trello.com/1/client.js?key=698e58f291aaec1fdb8ff04ef21f9381"></script>
+    <style>
+      li {
+        display: inline;
+        padding: 2px 5px;
+        background-color: salmon;
+        border: 1px solid darkred;
+        margin-right: 10px;
+      }
+      li > a, li > a:hover, li > a:visited {
+        text-decoration: none;
+        color: white;
+      }
+      body {
+        font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+        font-size: 14px;
+        line-height: 20px;
+      }
+      ul {
+        padding: 0px;
+        list-style-type: none;
+      }
+      table {
+        border-collapse: collapse;
+        border-spacing: 0;
+      }
+      tr:nth-child(odd) > td {
+        background-color: lightgray;
+      }
+    </style>
+  </head>
+  <body>
+    <div data-bind="visible: notLoggedIn">
+      <label for="meetupKey">Meetup API Key</label> <a href="http://www.meetup.com/meetup_api/key/" target="_blank"><sup>?</sup></a>:
+      <input type="text" id="meetupKey" data-bind="value: meetupKey"/>
+      <button type="button" data-bind="click: connect">Connect to Meetup and Trello</button>
+    </div>
+    <div data-bind="visible: loggedIn">
+      Add exclusion filter: <input type="text" id="filterInput" data-bind="value: newFilter"/> <button type="button" data-bind="click: addFilter">Add</button>
+      <div>
+        <ul data-bind="foreach: filters">
+          <li><span data-bind="text: $data"></span>&nbsp;&nbsp;&nbsp;&nbsp;<a href="#" data-bind="click: $parent.removeFilter">&times;</a>
+        </ul>
+      </div>
+      <hr/>
+      <table>
+        <tbody data-bind="foreach: speakers">
+          <tr>
+            <td data-bind="text: $data.name"></td>
+            <td data-bind="text: $data.answers[0].answer"></td>
+            <td data-bind="text: $data.answers[1].answer"></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </body>
+  <script src="bristech.js"></script>
+</html>
