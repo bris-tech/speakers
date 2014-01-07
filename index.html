@@ -32,6 +32,30 @@
       tr:nth-child(odd) > td {
         background-color: lightgray;
       }
+      td.trello > * {
+        display: none;
+      }
+      tr:hover > td.trello > * {
+        display: inline-block;
+      }
+      td.trello {
+        width: 16px;
+      }
+      tr.tracked.Interested > td {
+        background-color: orange;
+      }
+      tr.tracked.Accepted > td {
+        background-color: yellow;
+      }
+      tr.tracked.Scheduled > td {
+        background-color: lightgreen;
+      }
+      tr.tracked.Rejected > td {
+        background-color: red;
+      }
+      tr.tracked.Done > td {
+        display: none;
+      }
     </style>
   </head>
   <body>
@@ -49,12 +73,29 @@
       </div>
       <hr/>
       <table>
-        <tbody data-bind="foreach: speakers">
+        <tbody>
+          <!-- ko foreach: trackedSpeakers -->
+          <tr class="tracked" data-bind="css: $data.state">
+            <td data-bind="text: $data.name"></td>
+            <td data-bind="text: $data.answers[0].answer"></td>
+            <td data-bind="text: $data.answers[1].answer"></td>
+            <td class="trello">
+              <a data-bind="attr: { href: $data.url }" target="_blank">
+                <img src="http://upload.wikimedia.org/wikipedia/commons/3/30/Page_white_edit.png"/>
+              </a>
+            </td>
+          </tr>
+          <!-- /ko -->
+          <!-- ko foreach: speakers -->
           <tr>
             <td data-bind="text: $data.name"></td>
             <td data-bind="text: $data.answers[0].answer"></td>
             <td data-bind="text: $data.answers[1].answer"></td>
+            <td class="trello">
+              <img src="http://upload.wikimedia.org/wikipedia/commons/a/a7/Add.png" data-bind="click: $root.addToTrello"/>
+            </td>
           </tr>
+          <!-- /ko -->
         </tbody>
       </table>
     </div>

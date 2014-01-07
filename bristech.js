@@ -1,5 +1,6 @@
+var ko = ko || {}, Trello = Trello || {};
 function ViewModel() {
-	var self = this;
+	var self = this, meetupUsers = [], trelloCards = {}, trelloLists = {}, findSpeakers, addTrackedSpeaker;
 	self.meetupKey = ko.observable(localStorage["meetupKey"] || "");
 	self.loggedIn = ko.observable(false);
 	self.notLoggedIn = ko.computed(function() {
@@ -16,32 +17,42 @@ function ViewModel() {
 		localStorage["meetupKey"] = self.meetupKey();
 	};
 	self.potentialSpeakers = ko.observableArray([]);
-	var meetupUsers = [];
-	var trelloCards = {};
-	self.loadedTrello = ko.observable(false);
+	self.trackedSpeakers = ko.observableArray([]);
+	self.loadedTrelloLists = ko.observable(false);
+	self.loadedTrelloCards = ko.observable(false);
 	self.loadedMeetup = ko.observable(false);
-	self.filters = ko.observableArray(localStorage["filters"] || ["^no$", "^not?\W", "^[-.]$", "sorry|shy"]);
+	self.filters = ko.observableArray(localStorage["filters"].split(",") || ["^no$", "^not?\\W", "^[-.]$", "sorry|shy"]);
 	self.filters.subscribe(function() {
 		localStorage["filters"] = self.filters();
 	});
-	function findSpeakers() {
-		if (self.loadedTrello() && self.loadedMeetup()) {
-			for (var i = 0, meetupUser; meetupUser = meetupUsers[i]; i++) {
-				if (!trelloCards["meetupId-"+meetupUser.member_id]) {
+	findSpeakers = function() {
+		var trackedSpeaker, i, meetupUser, trelloCard;
+		if (self.loadedTrelloCards() && self.loadedTrelloLists() && self.loadedMeetup()) {
+			meetupUsers.sort(function(a,b) {
+				return a.name.localeCompare(b.name);
+			});
+			for (i = 0; meetupUser = meetupUsers[i]; i++) {
+				trelloCard = trelloCards["meetupId-"+meetupUser["member_id"]];
+				if (!trelloCard) {
 					self.potentialSpeakers.push(meetupUser);
+				} else {
+					addTrackedSpeaker(trelloCard, meetupUser);
 				}
 			}
 		}
 	}
+	addTrackedSpeaker = function(trelloCard, meetupUser) {
+		trackedSpeaker = $.extend({state: trelloLists[trelloCard.idList]}, trelloCard, meetupUser);
+		self.trackedSpeakers.push(trackedSpeaker);
+	};
 	self.speakers = ko.computed(function() {
-		var regexes = [], filters = self.filters();
-		for (var i=0, filter; filter = filters[i]; i++) {
+		var regexes = [], filters = self.filters(), speakers = [], potentials = self.potentialSpeakers(), filtered, i, j, s, filter, regex;
+		for (i=0; filter = filters[i]; i++) {
 			regexes.push(new RegExp(filter, "i"));
 		}
-		var speakers = [], potentials = self.potentialSpeakers();
-		for (var i=0, s; s = potentials[i]; i++) {
-			var filtered = false;
-			for (var j=0, regex; regex = regexes[j]; j++) {
+		for (i=0; s = potentials[i]; i++) {
+			filtered = false;
+			for (j=0; regex = regexes[j]; j++) {
 				if (!s.answers || !s.answers[1] || !s.answers[1].answer || regex.test(s.answers[1].answer)) {
 					filtered = true;
 					break;
@@ -53,7 +64,8 @@ function ViewModel() {
 		}
 		return speakers;
 	});
-	self.loadedTrello.subscribe(findSpeakers);
+	self.loadedTrelloCards.subscribe(findSpeakers);
+	self.loadedTrelloLists.subscribe(findSpeakers);
 	self.loadedMeetup.subscribe(findSpeakers);
 	self.onAuthorize = function() {
 		self.loggedIn(true);
@@ -61,7 +73,16 @@ function ViewModel() {
 			for (var i = 0, item; item = data[i]; i++) {
 				trelloCards["meetupId-"+item.desc] = item;
 			}
-			self.loadedTrello(true);
+			self.loadedTrelloCards(true);
+		});
+		Trello.get("/boards/VcltdZag/lists?fields=name", function(data) {
+			for (var i = 0, item; item = data[i]; i++) {
+				trelloLists[item.id] = item.name;
+				if (item.name === "Interested") {
+					self.interestedListId = item.id;
+				}
+			}
+			self.loadedTrelloLists(true);
 		});
 		$.ajax({
 			url: "https://api.meetup.com/2/profiles?group_urlname=bristech&only=profile_url,answers,name,member_id&sign=true&key="+localStorage["meetupKey"],
@@ -80,6 +101,15 @@ function ViewModel() {
 	};
 	self.removeFilter = function(data) {
 		self.filters.remove(data);
+	};
+	self.addToTrello = function(meetupUser) {
+		Trello.post("/lists/"+self.interestedListId+"/cards", {
+			desc: meetupUser["member_id"],
+			name: meetupUser.name + " - " + meetupUser.answers[1].answer
+		}, function(trelloCard) {
+			self.potentialSpeakers.remove(function(item) { return item["member_id"] === meetupUser["member_id"]; });
+			addTrackedSpeaker(trelloCard, meetupUser);
+		}, alert);
 	};
 	if (localStorage["meetupKey"] && Trello.authorized()) {
 		self.onAuthorize();
