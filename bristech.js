@@ -71,7 +71,7 @@ function ViewModel() {
 		self.loggedIn(true);
 		Trello.get("/boards/VcltdZag/cards", function(data) {
 			for (var i = 0, item; item = data[i]; i++) {
-				trelloCards["meetupId-"+item.desc] = item;
+				trelloCards["meetupId-"+item.desc.replace("([0-9]+) ?.*", "$1")] = item;
 			}
 			self.loadedTrelloCards(true);
 		});
@@ -104,7 +104,7 @@ function ViewModel() {
 	};
 	self.addToTrello = function(meetupUser) {
 		Trello.post("/lists/"+self.interestedListId+"/cards", {
-			desc: meetupUser["member_id"],
+			desc: meetupUser["member_id"] + " http://www.meetup.com/bristech/members/" + meetupUser["member_id"],
 			name: meetupUser.name + " - " + meetupUser.answers[1].answer
 		}, function(trelloCard) {
 			self.potentialSpeakers.remove(function(item) { return item["member_id"] === meetupUser["member_id"]; });

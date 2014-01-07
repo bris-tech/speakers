@@ -36,12 +36,15 @@
         display: none;
       }
       tr:hover > td.trello > * {
-        display: inline-block;
+        display: block;
       }
       td.trello {
         width: 16px;
       }
       tr.tracked.Interested > td {
+        background-color: peru;
+      }
+      tr.tracked.Contacted > td {
         background-color: orange;
       }
       tr.tracked.Accepted > td {
