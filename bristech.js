@@ -68,31 +68,37 @@ function ViewModel() {
 	self.loadedTrelloLists.subscribe(findSpeakers);
 	self.loadedMeetup.subscribe(findSpeakers);
 	self.onAuthorize = function() {
+		var loadMeetup;
 		self.loggedIn(true);
 		Trello.get("/boards/VcltdZag/cards", function(data) {
 			for (var i = 0, item; item = data[i]; i++) {
-				trelloCards["meetupId-"+item.desc.replace("([0-9]+) ?.*", "$1")] = item;
+				trelloCards["meetupId-"+item.desc.replace(/ .+$/, "")] = item;
 			}
 			self.loadedTrelloCards(true);
 		});
 		Trello.get("/boards/VcltdZag/lists?fields=name", function(data) {
 			for (var i = 0, item; item = data[i]; i++) {
-				trelloLists[item.id] = item.name;
+				trelloLists[item.id] = item.name.replace(/ .+$/, "");
 				if (item.name === "Interested") {
 					self.interestedListId = item.id;
 				}
 			}
 			self.loadedTrelloLists(true);
 		});
-		$.ajax({
-			url: "https://api.meetup.com/2/profiles?group_urlname=bristech&only=profile_url,answers,name,member_id&sign=true&key="+localStorage["meetupKey"],
-			dataType: "jsonp"
-		}).done(function(data) {
+		loadMeetup = function(data) {
 			for (var i = 0, item; item = data.results[i]; i++) {
 				meetupUsers.push(item);
 			}
-			self.loadedMeetup(true);
-		});
+			if (data.meta.next) {
+				$.ajax({url: data.meta.next, dataType: "jsonp"}).done(loadMeetup);
+			} else {
+				self.loadedMeetup(true);
+			}
+		};
+		$.ajax({
+			url: "https://api.meetup.com/2/profiles?group_urlname=bristech&only=profile_url,answers,name,member_id&sign=true&key="+localStorage["meetupKey"],
+			dataType: "jsonp"
+		}).done(loadMeetup);
 	};
 	self.newFilter = ko.observable();
 	self.addFilter = function() {
