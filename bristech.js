@@ -70,7 +70,7 @@ function ViewModel() {
 	self.onAuthorize = function() {
 		var loadMeetup;
 		self.loggedIn(true);
-		Trello.get("/boards/VcltdZag/cards", function(data) {
+		Trello.get("/boards/VcltdZag/cards?filter=all", function(data) {
 			for (var i = 0, item; item = data[i]; i++) {
 				trelloCards["meetupId-"+item.desc.replace(/^[^0-9]+([0-9]+)[^0-9]*$/, "$1")] = item;
 			}
