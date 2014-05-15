@@ -1,6 +1,6 @@
 var ko = ko || {}, Trello = Trello || {};
 function ViewModel() {
-	var self = this, meetupUsers = [], trelloCards = {}, trelloLists = {}, findSpeakers, addTrackedSpeaker;
+	var self = this, meetupUsers = [], trelloCards = {}, trelloLists = {}, findSpeakers, addTrackedSpeaker, filters = localStorage["filters"];
 	self.meetupKey = ko.observable(localStorage["meetupKey"] || "");
 	self.loggedIn = ko.observable(false);
 	self.notLoggedIn = ko.computed(function() {
@@ -21,7 +21,7 @@ function ViewModel() {
 	self.loadedTrelloLists = ko.observable(false);
 	self.loadedTrelloCards = ko.observable(false);
 	self.loadedMeetup = ko.observable(false);
-  self.filters = ko.observableArray((localStorage["filters"] || "^no$,^not?\\W,^[-.]$,sorry|shy").split(","));
+	self.filters = ko.observableArray(filters ? filters.split(",") : ["^no$", "^not?\\W", "^[-.]$", "sorry|shy"]);
 	self.filters.subscribe(function() {
 		localStorage["filters"] = self.filters();
 	});
@@ -72,7 +72,7 @@ function ViewModel() {
 		self.loggedIn(true);
 		Trello.get("/boards/VcltdZag/cards", function(data) {
 			for (var i = 0, item; item = data[i]; i++) {
-				trelloCards["meetupId-"+item.desc.replace(/ .+$/, "")] = item;
+				trelloCards["meetupId-"+item.desc.replace(/^[^0-9]+([0-9]+)[^0-9]*$/, "$1")] = item;
 			}
 			self.loadedTrelloCards(true);
 		});
@@ -110,7 +110,7 @@ function ViewModel() {
 	};
 	self.addToTrello = function(meetupUser) {
 		Trello.post("/lists/"+self.interestedListId+"/cards", {
-			desc: meetupUser["member_id"] + " http://www.meetup.com/bristech/members/" + meetupUser["member_id"],
+			desc: "http://www.meetup.com/bristech/members/" + meetupUser["member_id"],
 			name: meetupUser.name + " - " + meetupUser.answers[1].answer
 		}, function(trelloCard) {
 			self.potentialSpeakers.remove(function(item) { return item["member_id"] === meetupUser["member_id"]; });
