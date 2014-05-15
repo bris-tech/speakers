@@ -21,7 +21,7 @@ function ViewModel() {
 	self.loadedTrelloLists = ko.observable(false);
 	self.loadedTrelloCards = ko.observable(false);
 	self.loadedMeetup = ko.observable(false);
-	self.filters = ko.observableArray(localStorage["filters"].split(",") || ["^no$", "^not?\\W", "^[-.]$", "sorry|shy"]);
+  self.filters = ko.observableArray((localStorage["filters"] || "^no$,^not?\\W,^[-.]$,sorry|shy").split(","));
 	self.filters.subscribe(function() {
 		localStorage["filters"] = self.filters();
 	});
@@ -56,7 +56,7 @@ function ViewModel() {
 				if (!s.answers || !s.answers[1] || !s.answers[1].answer || regex.test(s.answers[1].answer)) {
 					filtered = true;
 					break;
-				} 
+				}
 			}
 			if (!filtered) {
 				speakers.push(s);
