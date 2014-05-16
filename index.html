@@ -2,7 +2,9 @@
 <html>
   <head>
     <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Bristech Speakers</title>
     <script src="//ajax.aspnetcdn.com/ajax/jQuery/jquery-2.0.3.js"></script>
+    <script src="jquery.mobile.custom.min.js"></script>
     <script src="//ajax.aspnetcdn.com/ajax/knockout/knockout-2.2.1.js"></script>
     <script src="https://api.trello.com/1/client.js?key=698e58f291aaec1fdb8ff04ef21f9381"></script>
     <link rel="stylesheet" href="//netdna.bootstrapcdn.com/bootstrap/3.1.1/css/bootstrap.min.css">
@@ -32,19 +34,25 @@
         background-color: lightgray;
       }
       .trello {
-        display: none;
         position: absolute;
         right: 0;
+        font-size: 20px;
+      }
+      .trello > a {
+        text-decoration: none;
+        color: black;
       }
       .meetupmember {
+        margin-top: 2px;
         line-height: 24px;
         position: relative;
       }
       .meetupmember:hover > .trello {
-        display: block;
+        display: block !important;
+        visibility: visible !important;
       }
       .tracked.Interested {
-        background-color: peru;
+        background-color: lightblue;
       }
       .tracked.Contacted {
         background-color: orange;
@@ -61,14 +69,19 @@
       .tracked.Done {
         display: none;
       }
+      img {
+        height: 24px;
+        width: 24px;
+      }
     </style>
   </head>
   <body>
       <h1>Bristech speakers</h1>
     <div data-bind="visible: notLoggedIn">
-      <label for="meetupKey">Meetup API Key</label> <a href="http://www.meetup.com/meetup_api/key/" target="_blank"><sup>?</sup></a>:
+      <label for="meetupKey">Meetup API Key</label> <a href="http://www.meetup.com/meetup_api/key/" target="_blank" title="Get your API key here"><sup>?</sup></a>:
       <input type="text" id="meetupKey" data-bind="value: meetupKey"/>
       <button type="button" data-bind="click: connect">Connect to Meetup and Trello</button>
+      <p>Your meetup.com API key, and Trello authorisation token will be kept in the localStorage of the application, and will not be communicated or stored anywhere else.</p>
     </div>
     <div data-bind="visible: loggedIn">
       <p>Add exclusion filter: <input type="text" id="filterInput" data-bind="value: newFilter"/> <button type="button" data-bind="click: addFilter">Add</button></p>
@@ -80,25 +93,23 @@
       <hr/>
       <div class="container-fluid">
           <!-- ko foreach: trackedSpeakers -->
-          <div class="row meetupmember tracked" data-bind="css: $data.state">
+          <div class="row meetupmember tracked" data-bind="css: $data.state, attr: { title: $data.state }, event: { click: $root.showTools, tap: $root.showTools }">
               <div class="col-xs-3 col-sm-1"><a data-bind="text: $data.name, attr: { href: $data.profile_url }" target="_blank"></a></div>
               <div class="col-xs-9 col-sm-5" data-bind="text: $data.answers[0].answer"></div>
               <div class="col-xs-12 col-sm-6" data-bind="text: $data.answers[1].answer"></div>
-              <div class="trello">
-                  <a data-bind="attr: { href: $data.url }" target="_blank">
-                      <img src="http://upload.wikimedia.org/wikipedia/commons/3/30/Page_white_edit.png"/>
-                  </a>
+              <div class="trello hidden">
+                  <a data-bind="attr: { href: $data.url }" target="_blank" class="glyphicon glyphicon-pencil"></a>
               </div>
           </div>
           <!-- /ko -->
           <!-- ko foreach: speakers -->
-          <div class="row meetupmember">
+          <div class="row meetupmember" data-bind="event: { taphold: $root.showTools, tap: $root.showTools, swipeleft: $root.remove }">
               <div class="col-xs-3 col-sm-1"><a data-bind="text: $data.name, attr: { href: $data.profile_url }"></a></div>
               <div class="col-xs-9 col-sm-5" data-bind="text: $data.answers[0].answer"></div>
               <div class="col-xs-12 col-sm-6" data-bind="text: $data.answers[1].answer"></div>
-              <div class="trello">
-                  <img src="http://upload.wikimedia.org/wikipedia/commons/a/a7/Add.png" data-bind="click: $root.addToTrello"/>
-                  <img src="http://upload.wikimedia.org/wikipedia/commons/9/92/Bin_closed.png" data-bind="click: $root.remove"/>
+              <div class="trello hidden">
+                  <a class="glyphicon glyphicon-plus-sign" href="#" data-bind="click: $root.addToTrello"></a>
+                  <a class="glyphicon glyphicon-trash" href="#" data-bind="click: $root.remove"></a>
               </div>
           </div>
           <!-- /ko -->

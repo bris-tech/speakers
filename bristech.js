@@ -16,7 +16,8 @@ function ViewModel() {
 	self.connect = function() {
 		if (!Trello.authorized()) {
 			Trello.authorize({
-				type: "popup",
+        name: "Bristech Speakers",
+        type: "popup",
 				success: self.onAuthorize,
 				scope: {write: true, read: true}
 			});
@@ -38,6 +39,9 @@ function ViewModel() {
 	});
   self.remove = function(data) {
     self.removed.push(data.member_id);
+  };
+  self.showTools = function(data, e) {
+    $(e.target).children(".trello").toggleClass("hidden");
   };
 	findSpeakers = function() {
 		var trackedSpeaker, i, meetupUser, trelloCard;
