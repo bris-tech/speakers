@@ -93,7 +93,7 @@
       <hr/>
       <div class="container-fluid">
           <!-- ko foreach: trackedSpeakers -->
-          <div class="row meetupmember tracked" data-bind="css: $data.state, attr: { title: $data.state }, event: { click: $root.showTools, tap: $root.showTools }">
+          <div class="row meetupmember tracked" data-bind="css: $data.state, attr: { title: $data.state }, event: { taphold: $root.showTools }">
               <div class="col-xs-3 col-sm-1"><a data-bind="text: $data.name, attr: { href: $data.profile_url }" target="_blank"></a></div>
               <div class="col-xs-9 col-sm-5" data-bind="text: $data.answers[0].answer"></div>
               <div class="col-xs-12 col-sm-6" data-bind="text: $data.answers[1].answer"></div>
@@ -103,7 +103,7 @@
           </div>
           <!-- /ko -->
           <!-- ko foreach: speakers -->
-          <div class="row meetupmember" data-bind="event: { taphold: $root.showTools, tap: $root.showTools, swipeleft: $root.remove }">
+          <div class="row meetupmember" data-bind="event: { taphold: $root.showTools, swipe: $root.remove }">
               <div class="col-xs-3 col-sm-1"><a data-bind="text: $data.name, attr: { href: $data.profile_url }"></a></div>
               <div class="col-xs-9 col-sm-5" data-bind="text: $data.answers[0].answer"></div>
               <div class="col-xs-12 col-sm-6" data-bind="text: $data.answers[1].answer"></div>
