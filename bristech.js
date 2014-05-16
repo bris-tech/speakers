@@ -1,6 +1,13 @@
 var ko = ko || {}, Trello = Trello || {};
 function ViewModel() {
-	var self = this, meetupUsers = [], trelloCards = {}, trelloLists = {}, findSpeakers, addTrackedSpeaker, filters = localStorage["filters"];
+	var findSpeakers, addTrackedSpeaker,
+      self = this,
+      meetupUsers = [],
+      trelloCards = {},
+      trelloLists = {},
+      filters = localStorage["filters"] ? JSON.parse(localStorage["filters"]) : ["^no$", "^not?\\W", "^[-.]$", "sorry|shy"],
+      removed = localStorage["removed"] ? JSON.parse(localStorage["removed"]) : [];
+
 	self.meetupKey = ko.observable(localStorage["meetupKey"] || "");
 	self.loggedIn = ko.observable(false);
 	self.notLoggedIn = ko.computed(function() {
@@ -21,10 +28,17 @@ function ViewModel() {
 	self.loadedTrelloLists = ko.observable(false);
 	self.loadedTrelloCards = ko.observable(false);
 	self.loadedMeetup = ko.observable(false);
-	self.filters = ko.observableArray(filters ? filters.split(",") : ["^no$", "^not?\\W", "^[-.]$", "sorry|shy"]);
+	self.filters = ko.observableArray(filters);
 	self.filters.subscribe(function() {
-		localStorage["filters"] = self.filters();
+		localStorage["filters"] = JSON.stringify(self.filters());
 	});
+	self.removed = ko.observableArray(removed);
+	self.removed.subscribe(function() {
+		localStorage["removed"] = JSON.stringify(self.removed());
+	});
+  self.remove = function(data) {
+    self.removed.push(data.member_id);
+  };
 	findSpeakers = function() {
 		var trackedSpeaker, i, meetupUser, trelloCard;
 		if (self.loadedTrelloCards() && self.loadedTrelloLists() && self.loadedMeetup()) {
@@ -46,12 +60,18 @@ function ViewModel() {
 		self.trackedSpeakers.push(trackedSpeaker);
 	};
 	self.speakers = ko.computed(function() {
-		var regexes = [], filters = self.filters(), speakers = [], potentials = self.potentialSpeakers(), filtered, i, j, s, filter, regex;
+		var filtered, i, j, s, filter, regex,
+        regexes = [],
+        filters = self.filters(),
+        speakers = [],
+        potentials = self.potentialSpeakers(),
+        removed = self.removed();
+
 		for (i=0; filter = filters[i]; i++) {
 			regexes.push(new RegExp(filter, "i"));
 		}
 		for (i=0; s = potentials[i]; i++) {
-			filtered = false;
+			filtered = removed.indexOf(s.member_id) > -1;
 			for (j=0; regex = regexes[j]; j++) {
 				if (!s.answers || !s.answers[1] || !s.answers[1].answer || regex.test(s.answers[1].answer)) {
 					filtered = true;

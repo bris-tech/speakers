@@ -1,9 +1,11 @@
 <!DOCTYPE html>
 <html>
   <head>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
     <script src="//ajax.aspnetcdn.com/ajax/jQuery/jquery-2.0.3.js"></script>
     <script src="//ajax.aspnetcdn.com/ajax/knockout/knockout-2.2.1.js"></script>
     <script src="https://api.trello.com/1/client.js?key=698e58f291aaec1fdb8ff04ef21f9381"></script>
+    <link rel="stylesheet" href="//netdna.bootstrapcdn.com/bootstrap/3.1.1/css/bootstrap.min.css">
     <style>
       li {
         display: inline;
@@ -20,87 +22,87 @@
         font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
         font-size: 14px;
         line-height: 20px;
+        padding: 5px;
       }
       ul {
         padding: 0px;
         list-style-type: none;
       }
-      table {
-        border-collapse: collapse;
-        border-spacing: 0;
-      }
-      tr:nth-child(odd) > td {
+      .meetupmember:nth-child(odd) {
         background-color: lightgray;
       }
-      td.trello > * {
+      .trello {
         display: none;
+        position: absolute;
+        right: 0;
       }
-      tr:hover > td.trello > * {
+      .meetupmember {
+        line-height: 24px;
+        position: relative;
+      }
+      .meetupmember:hover > .trello {
         display: block;
       }
-      td.trello {
-        width: 16px;
-      }
-      tr.tracked.Interested > td {
+      .tracked.Interested {
         background-color: peru;
       }
-      tr.tracked.Contacted > td {
+      .tracked.Contacted {
         background-color: orange;
       }
-      tr.tracked.Accepted > td {
+      .tracked.Accepted {
         background-color: lightgreen;
       }
-      tr.tracked.Scheduled > td {
+      .tracked.Scheduled {
         background-color: yellow;
       }
-      tr.tracked.Rejected > td {
+      .tracked.Rejected {
         background-color: red;
       }
-      tr.tracked.Done > td {
+      .tracked.Done {
         display: none;
       }
     </style>
   </head>
   <body>
+      <h1>Bristech speakers</h1>
     <div data-bind="visible: notLoggedIn">
       <label for="meetupKey">Meetup API Key</label> <a href="http://www.meetup.com/meetup_api/key/" target="_blank"><sup>?</sup></a>:
       <input type="text" id="meetupKey" data-bind="value: meetupKey"/>
       <button type="button" data-bind="click: connect">Connect to Meetup and Trello</button>
     </div>
     <div data-bind="visible: loggedIn">
-      Add exclusion filter: <input type="text" id="filterInput" data-bind="value: newFilter"/> <button type="button" data-bind="click: addFilter">Add</button>
+      <p>Add exclusion filter: <input type="text" id="filterInput" data-bind="value: newFilter"/> <button type="button" data-bind="click: addFilter">Add</button></p>
       <div>
         <ul data-bind="foreach: filters">
           <li><span data-bind="text: $data"></span>&nbsp;&nbsp;&nbsp;&nbsp;<a href="#" data-bind="click: $parent.removeFilter">&times;</a>
         </ul>
       </div>
       <hr/>
-      <table>
-        <tbody>
+      <div class="container-fluid">
           <!-- ko foreach: trackedSpeakers -->
-          <tr class="tracked" data-bind="css: $data.state">
-            <td data-bind="text: $data.name"></td>
-            <td data-bind="text: $data.answers[0].answer"></td>
-            <td data-bind="text: $data.answers[1].answer"></td>
-            <td class="trello">
-              <a data-bind="attr: { href: $data.url }" target="_blank">
-                <img src="http://upload.wikimedia.org/wikipedia/commons/3/30/Page_white_edit.png"/>
-              </a>
-            </td>
-          </tr>
+          <div class="row meetupmember tracked" data-bind="css: $data.state">
+              <div class="col-xs-3 col-sm-1"><a data-bind="text: $data.name, attr: { href: $data.profile_url }" target="_blank"></a></div>
+              <div class="col-xs-9 col-sm-5" data-bind="text: $data.answers[0].answer"></div>
+              <div class="col-xs-12 col-sm-6" data-bind="text: $data.answers[1].answer"></div>
+              <div class="trello">
+                  <a data-bind="attr: { href: $data.url }" target="_blank">
+                      <img src="http://upload.wikimedia.org/wikipedia/commons/3/30/Page_white_edit.png"/>
+                  </a>
+              </div>
+          </div>
           <!-- /ko -->
           <!-- ko foreach: speakers -->
-          <tr>
-            <td data-bind="text: $data.name"></td>
-            <td data-bind="text: $data.answers[0].answer"></td>
-            <td data-bind="text: $data.answers[1].answer"></td>
-            <td class="trello">
-              <img src="http://upload.wikimedia.org/wikipedia/commons/a/a7/Add.png" data-bind="click: $root.addToTrello"/>
-            </td>
-          </tr>
+          <div class="row meetupmember">
+              <div class="col-xs-3 col-sm-1"><a data-bind="text: $data.name, attr: { href: $data.profile_url }"></a></div>
+              <div class="col-xs-9 col-sm-5" data-bind="text: $data.answers[0].answer"></div>
+              <div class="col-xs-12 col-sm-6" data-bind="text: $data.answers[1].answer"></div>
+              <div class="trello">
+                  <img src="http://upload.wikimedia.org/wikipedia/commons/a/a7/Add.png" data-bind="click: $root.addToTrello"/>
+                  <img src="http://upload.wikimedia.org/wikipedia/commons/9/92/Bin_closed.png" data-bind="click: $root.remove"/>
+              </div>
+          </div>
           <!-- /ko -->
-        </tbody>
-      </table>
+      </div>
     </div>
   </body>
   <script src="bristech.js"></script>
